@@ -1,0 +1,14 @@
+---
+
+version: '3.9'
+services:
+  getinstallationid.js:
+    ports:
+      - 8080:8080
+    env_file:
+      - .env
+    # image: ghcr.io/chriskinsman/github-action-dashboard:edge
+    # command: node getinstallationid.js
+    command: node index.js
+    build: .
+

@@ -1,5 +1,9 @@
 # GitHub Action Dashboard
 
+This is a fork of [Chris Kinsman's GitHub Action Dashboard](https://github.com/ChrisKinsman/github-action-dashboard) with a number of updates and improvements. I may submit a pull request to the original repo at some point, but for now I'm just using this as a place to store my changes.
+
+---
+
 ![ScreenShot](https://github.com/ChrisKinsman/github-action-dashboard/blob/main/docs/images/ActionDashboardScreenShot.png)
 
 When our current CI/CD provider shutdown I found myself evaluating GitHub actions as an alternative. Great solution with one problem. There was no single pane of glass to see the status of all the builds in our GitHub organization. Instead you had to go into each repo, check the action status, etc.
@@ -83,36 +87,24 @@ GitHub doesn't make the installation id super obvious in the UI. Here is how to 
 - Click Configure on GitHub Action Dashboard
 - In the URL, the digits after the slash are your installation id.
 
-Alternatively I have provided a utility to obtain the installation id. You will need all the variables from the previous section with the exception of GITHUB_APP_INSTALLATIONID set to do this.
-
-#### Option 1
-
-Requires docker installed locally.
-
-```bash
-docker run --rm -t --env GITHUB_USERNAME=XXXXXXX --env GITHUB_APPID=XXXXXX --env GITHUB_APP_PRIVATEKEY=XXXXXXXXXXXXXXXXXXX --env GITHUB_APP_CLIENTID=XXX.XXXXXXXXXXXXXXXX --env GITHUB_APP_CLIENTSECRET=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ghcr.io/chriskinsman/github-action-dashboard:edge node getinstallationid.js
-```
-
-#### Option 2
-
-Requires nodejs installed locally.
-
-```bash
-npm ci
-GITHUB_USERNAME=XXXXXXX GITHUB_APPID=XXXXXX GITHUB_APP_PRIVATEKEY=XXXXXXXXXXXXXXXXXXXXX GITHUB_APP_CLIENTID=XXX.XXXXXXXXXXXXXXXX GITHUB_APP_CLIENTSECRET=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX node getinstallationid.js
-```
-
 ## Running Dashboard
 
-#### Option 1
+### Docker
 
 Requires docker installed locally.
 
 ```bash
-docker run --rm -td -p 8080:8080 --env GITHUB_USERNAME=XXXXXXX --env GITHUB_APPID=XXXXXX --env GITHUB_APP_PRIVATEKEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXX --env GITHUB_APP_CLIENTID=XXX.XXXXXXXXXXXXXXXX --env GITHUB_APP_CLIENTSECRET=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --env GITHUB_APP_INSTALLATIONID=XXXXXXX ghcr.io/chriskinsman/github-action-dashboard:edge node index.js
+docker run --rm -td -p 8080:8080 \
+  --env GITHUB_USERNAME=XXXXXXX \
+  --env GITHUB_APPID=XXXXXX \
+  --env GITHUB_APP_PRIVATEKEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXX \
+  --env GITHUB_APP_CLIENTID=XXX.XXXXXXXXXXXXXXXX \
+  --env GITHUB_APP_CLIENTSECRET=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \
+  --env GITHUB_APP_INSTALLATIONID=XXXXXXX \
+  ghcr.io/chriskinsman/github-action-dashboard:edge node index.js
 ```
 
-#### Option 2
+#### NodeJS
 
 Requires nodejs installed locally.
 
@@ -141,3 +133,24 @@ smee --port 8081
 ```
 
 Then take the proxy endpoint and update your GitHub App webhook with it
+
+## Alternative way to obtain installation id
+
+Alternatively I have provided a utility to obtain the installation id. You will need all the variables from the previous section with the exception of GITHUB_APP_INSTALLATIONID set to do this.
+
+### Docker Alternative
+
+Requires docker installed locally.
+
+```bash
+docker run --rm -t --env GITHUB_USERNAME=XXXXXXX --env GITHUB_APPID=XXXXXX --env GITHUB_APP_PRIVATEKEY=XXXXXXXXXXXXXXXXXXX --env GITHUB_APP_CLIENTID=XXX.XXXXXXXXXXXXXXXX --env GITHUB_APP_CLIENTSECRET=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ghcr.io/chriskinsman/github-action-dashboard:edge node getinstallationid.js
+```
+
+### NodeJS Alternative
+
+Requires nodejs installed locally.
+
+```bash
+npm ci
+GITHUB_USERNAME=XXXXXXX GITHUB_APPID=XXXXXX GITHUB_APP_PRIVATEKEY=XXXXXXXXXXXXXXXXXXXXX GITHUB_APP_CLIENTID=XXX.XXXXXXXXXXXXXXXX GITHUB_APP_CLIENTSECRET=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX node getinstallationid.js
+```

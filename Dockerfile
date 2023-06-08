@@ -19,3 +19,5 @@ ENV NODE_ENV production
 COPY client/dist ./client/dist/
 COPY actions.js configure.js getinstallationid.js github.js index.js routes.js runstatus.js webhooks.js ./
 COPY --from=npm /github-action-dashboard/node_modules ./node_modules
+
+CMD ["node", "index.js"]

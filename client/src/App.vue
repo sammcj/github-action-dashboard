@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import ActionDashboard from "./components/actiondashboard.vue";
+import ActionDashboard from "./components/ActionDashboard.vue";
 import axios from "axios";
 
 export default {

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "es2018",
     "module": "esnext",
     "baseUrl": "./",
     "paths": {
@@ -10,5 +10,11 @@
   "include": [
     "src/**/*.vue",
     "src/**/*.js"
-  ]
+  ],
+  "vueCompilerOptions": {
+    "target": 2.7,
+    "extensions": [
+      ".vue"
+    ]
+  }
 }

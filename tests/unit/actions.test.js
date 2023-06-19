@@ -1,18 +1,18 @@
-const Actions = require("../../actions");
+const Actions = require('../../actions');
 
-const mockData = require("./mock_data");
+const mockData = require('./mock_data');
 
 afterEach(() => {
   jest.restoreAllMocks();
   jest.useRealTimers();
 });
 
-test("Actions - Start", () => {
+test('Actions - Start', () => {
   jest.useFakeTimers();
-  const gitHub = require("../../github");
+  const gitHub = require('../../github');
   const actions = new Actions(gitHub);
   const refreshRuns = jest
-    .spyOn(actions, "refreshRuns")
+    .spyOn(actions, 'refreshRuns')
     .mockImplementation(() => {});
 
   actions.start();
@@ -22,9 +22,9 @@ test("Actions - Start", () => {
   expect(refreshRuns.mock.calls.length).toBe(2);
 });
 
-test("Actions - getMostRecentRuns Empty", async () => {
-  jest.mock("../../github");
-  const GitHub = require("../../github");
+test('Actions - getMostRecentRuns Empty', async () => {
+  jest.mock('../../github');
+  const GitHub = require('../../github');
   const listWorkflowRuns = jest.fn(async () => {
     return [];
   });
@@ -37,9 +37,9 @@ test("Actions - getMostRecentRuns Empty", async () => {
   const gitHub = new GitHub();
   const actions = new Actions(gitHub, null, 7);
   const runs = await actions.getMostRecentRuns(
-    "ChrisKinsman",
-    "github-action-dashboard",
-    ""
+    'ChrisKinsman',
+    'github-action-dashboard',
+    '',
   );
 
   expect(runs).toBeTruthy();
@@ -47,11 +47,11 @@ test("Actions - getMostRecentRuns Empty", async () => {
   expect(listWorkflowRuns.mock.calls).toHaveLength(1);
 });
 
-test("Actions - getMostRecentRuns Error", async () => {
-  jest.mock("../../github");
-  const GitHub = require("../../github");
+test('Actions - getMostRecentRuns Error', async () => {
+  jest.mock('../../github');
+  const GitHub = require('../../github');
   const listWorkflowRuns = jest.fn(async () => {
-    throw new Error("Foo");
+    throw new Error('Foo');
   });
   GitHub.mockImplementation(() => {
     return {
@@ -63,18 +63,18 @@ test("Actions - getMostRecentRuns Error", async () => {
   const actions = new Actions(gitHub, null, 7);
 
   const runs = await actions.getMostRecentRuns(
-    "ChrisKinsman",
-    "github-action-dashboard",
-    ""
+    'ChrisKinsman',
+    'github-action-dashboard',
+    '',
   );
 
   expect(runs).toBeTruthy();
   expect(runs).toHaveLength(0);
 });
 
-test("Actions - getMostRecentRuns With Data", async () => {
-  jest.mock("../../github");
-  const GitHub = require("../../github");
+test('Actions - getMostRecentRuns With Data', async () => {
+  jest.mock('../../github');
+  const GitHub = require('../../github');
   const listWorkflowRuns = jest.fn(async () => {
     const mockRuns = [...mockData.runs];
     return mockRuns;
@@ -94,35 +94,35 @@ test("Actions - getMostRecentRuns With Data", async () => {
   // Long lookback for our test data
   const actions = new Actions(gitHub, null, 600);
   const runs = await actions.getMostRecentRuns(
-    "ChrisKinsman",
-    "github-action-dashboard",
-    ""
+    'ChrisKinsman',
+    'github-action-dashboard',
+    '',
   );
   console.dir(runs);
   expect(runs).toBeTruthy();
   expect(runs.length > 0).toBeTruthy();
 });
 
-test("Actions - getInitialData", async () => {
-  const gitHub = require("../../github");
+test('Actions - getInitialData', async () => {
+  const gitHub = require('../../github');
   const actions = new Actions(gitHub);
   const refreshRuns = jest
-    .spyOn(actions, "refreshRuns")
+    .spyOn(actions, 'refreshRuns')
     .mockImplementation(() => {});
 
   actions.getInitialData();
   expect(refreshRuns.mock.calls.length).toBe(1);
 });
 
-test("Actions - refreshWorkflow", async () => {
-  const gitHub = require("../../github");
+test('Actions - refreshWorkflow', async () => {
+  const gitHub = require('../../github');
   const actions = new Actions(gitHub);
   const getMostRecentRuns = jest
-    .spyOn(actions, "getMostRecentRuns")
+    .spyOn(actions, 'getMostRecentRuns')
     .mockImplementation(async () => {
       return [];
     });
-  const mergeRuns = jest.spyOn(actions, "mergeRuns").mockImplementation(() => {
+  const mergeRuns = jest.spyOn(actions, 'mergeRuns').mockImplementation(() => {
     return;
   });
 
@@ -132,13 +132,13 @@ test("Actions - refreshWorkflow", async () => {
   expect(mergeRuns.mock.calls.length).toBe(1);
 });
 
-test("Actions - mergeRuns", () => {
+test('Actions - mergeRuns', () => {
   const mockRuns = [...mockData.runs];
-  const gitHub = require("../../github");
-  const RunStatus = require("../../runstatus");
+  const gitHub = require('../../github');
+  const RunStatus = require('../../runstatus');
   const runStatus = new RunStatus();
   const updatedRun = jest
-    .spyOn(runStatus, "updatedRun")
+    .spyOn(runStatus, 'updatedRun')
     .mockImplementation(() => {
       return;
     });
@@ -150,9 +150,9 @@ test("Actions - mergeRuns", () => {
   expect(updatedRun.mock.calls).toHaveLength(mockRuns.length);
 });
 
-test("Actions - refreshRuns", async () => {
-  jest.mock("../../github");
-  const GitHub = require("../../github");
+test('Actions - refreshRuns', async () => {
+  jest.mock('../../github');
+  const GitHub = require('../../github');
   const listRepos = jest.fn(async () => {
     return [...mockData.repos];
   });
@@ -181,12 +181,12 @@ test("Actions - refreshRuns", async () => {
   expect(listWorkflowRuns.mock.calls.length > 0).toBeTruthy();
 });
 
-test("Actions - refreshRuns Error", async () => {
+test('Actions - refreshRuns Error', async () => {
   // Setup
-  jest.mock("../../github");
-  const GitHub = require("../../github");
+  jest.mock('../../github');
+  const GitHub = require('../../github');
   const listRepos = jest.fn(async () => {
-    throw new Error("foo");
+    throw new Error('foo');
   });
   const listWorkflowsForRepo = jest.fn(async () => {
     return [...mockData.workflows];

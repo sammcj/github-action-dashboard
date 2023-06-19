@@ -1,7 +1,8 @@
-const debug = require("debug")("action-dashboard:actions");
-const _ = require("lodash");
-const dayjs = require("dayjs");
-const pLimit = require("p-limit");
+const { PromisePool } = require('@supercharge/promise-pool');
+
+const debug = require('debug')('action-dashboard:actions');
+const _ = require('lodash');
+const dayjs = require('dayjs');
 
 class Actions {
   constructor(gitHub, runStatus, lookbackDays) {
@@ -11,32 +12,34 @@ class Actions {
     this._runs = [];
     this._refreshingRuns = false;
     this._lookbackDays = lookbackDays;
+    this._limit = 10;
+    this._pool = new PromisePool();
   }
 
   start() {
-    debug("Performing initial refreshRuns");
+    debug('Performing initial refreshRuns');
     // Load the initial set
     this.refreshRuns();
 
-    debug("Setting interval to refreshRuns at 15m");
+    debug('Setting interval to refreshRuns at 15m');
     // Refresh by default every fifteeen minutes
     setInterval(this.refreshRuns, 1000 * 60 * 15);
   }
 
   async getMostRecentRuns(repoOwner, repoName, workflowId) {
     try {
-      const daysAgo = dayjs().subtract(this._lookbackDays, "day");
+      const daysAgo = dayjs().subtract(this._lookbackDays, 'day');
       const runs = await this._gitHub.listWorkflowRuns(
         repoOwner,
         repoName,
-        workflowId
+        workflowId,
       );
       if (runs.length > 0) {
-        const groupedRuns = _.groupBy(runs, "head_branch");
+        const groupedRuns = _.groupBy(runs, 'head_branch');
         const rows = _.reduce(
           groupedRuns,
           (result, runs, branch) => {
-            debug(`branch`, branch);
+            debug('branch', branch);
             if (daysAgo.isBefore(dayjs(runs[0].created_at))) {
               debug(`adding run.id: ${runs[0].id}`);
               result.push({
@@ -51,7 +54,7 @@ class Actions {
                 message: runs[0].head_commit.message,
                 committer: runs[0].head_commit.committer.name,
                 status:
-                  runs[0].status === "completed"
+                  runs[0].status === 'completed'
                     ? runs[0].conclusion
                     : runs[0].status,
                 createdAt: runs[0].created_at,
@@ -59,49 +62,53 @@ class Actions {
               });
             } else {
               debug(
-                `skipping run.id: ${runs[0].id} created_at: ${runs[0].created_at}`
+                `skipping run.id: ${runs[0].id} created_at: ${runs[0].created_at}`,
               );
             }
 
             return result;
           },
-          []
+          [],
         );
 
         debug(
-          `getting duration of runs owner: ${repoOwner}, repo: ${repoName}, workflowId: ${workflowId}`
+          `getting duration of runs owner: ${repoOwner}, repo: ${repoName}, workflowId: ${workflowId}`,
         );
 
         // Get durations of runs
-        const limit = pLimit(10);
-        const getUsagePromises = rows.map((row) => {
-          return limit(async () => {
-            const usage = await this._gitHub.getUsage(
-              repoOwner,
-              repoName,
-              workflowId,
-              row.runId
-            );
-            if (usage?.run_duration_ms) {
-              row.durationMs = usage.run_duration_ms;
-            }
+        const promiseProducer = (row) => async () => {
+          const usage = await this._gitHub.getUsage(
+            repoOwner,
+            repoName,
+            workflowId,
+            row.runId,
+          );
+          if (usage?.run_duration_ms) {
+            row.durationMs = usage.run_duration_ms;
+          }
+          return row;
+        };
 
-            return row;
-          });
-        });
+        const rowPool = async (rows) => {
+          const { results } = await this._pool
+            .for(rows)
+            .withConcurrency(this._limit)
+            .process(promiseProducer);
+          return results;
+        };
 
-        const rowsWithDuration = await Promise.all(getUsagePromises);
+        const rowsWithDuration = await rowPool(rows);
 
         debug(
           `most recent runs owner: ${repoOwner}, repo: ${repoName}, workflowId: ${workflowId}`,
-          rowsWithDuration
+          rowsWithDuration,
         );
-        return rows;
+        return rowsWithDuration;
       } else {
         return [];
       }
     } catch (e) {
-      console.error("Error getting runs", e);
+      console.error('Error getting runs', e);
       return [];
     }
   }
@@ -109,7 +116,7 @@ class Actions {
   mergeRuns(runs) {
     // Merge into cache
     runs.forEach((run) => {
-      debug(`merging run`, run);
+      debug('merging run', run);
       const index = _.findIndex(this._runs, {
         workflowId: run.workflowId,
         branch: run.branch,
@@ -122,7 +129,7 @@ class Actions {
       this._runStatus.updatedRun(run);
     });
 
-    debug("merged runs", this._runs);
+    debug('merged runs', this._runs);
   }
 
   refreshRuns = async () => {
@@ -131,7 +138,7 @@ class Actions {
       return;
     }
 
-    debug("Starting refreshing runs");
+    debug('Starting refreshing runs');
     try {
       this._refreshingRuns = true;
       const repos = await this._gitHub.listRepos();
@@ -139,7 +146,7 @@ class Actions {
         debug(`repo: ${repo.name}`);
         const workflows = await this._gitHub.listWorkflowsForRepo(
           repo.name,
-          repo.owner.login
+          repo.owner.login,
         );
         if (workflows.length > 0) {
           for (const workflow of workflows) {
@@ -147,7 +154,7 @@ class Actions {
             const runs = await this.getMostRecentRuns(
               repo.owner.login,
               repo.name,
-              workflow.id
+              workflow.id,
             );
             // Not using apply or spread in case there are a large number of runs returned
             this.mergeRuns(runs);
@@ -155,9 +162,9 @@ class Actions {
         }
       }
     } catch (e) {
-      console.error("Error getting initial data", e);
+      console.error('Error getting initial data', e);
     } finally {
-      debug("Finished refreshing runs");
+      debug('Finished refreshing runs');
       this._refreshingRuns = false;
     }
   };
@@ -170,7 +177,7 @@ class Actions {
   getInitialData() {
     debug(`getInitialData this._runs.length: ${this._runs.length}`);
     if (this._runs.length === 0 && !this._refreshingRuns) {
-      debug("getInitialData calling refreshRuns");
+      debug('getInitialData calling refreshRuns');
       this.refreshRuns();
     }
 

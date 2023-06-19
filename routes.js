@@ -1,4 +1,4 @@
-const debug = require("debug")("action-dashboard:routes");
+const debug = require('debug')('action-dashboard:routes');
 
 class Routes {
   constructor(actions, owner) {
@@ -7,21 +7,21 @@ class Routes {
   }
 
   attach(router) {
-    router.get("/owner", (req, res, next) => {
+    router.get('/owner', (req, res, next) => {
       debug(`/owner ${this._owner}`);
       res.send(this._owner);
     });
 
-    router.get("/initialData", (req, res, next) => {
+    router.get('/initialData', (req, res, next) => {
       const initialData = this._actions.getInitialData();
       res.send(initialData);
     });
 
-    router.get("/runs/:owner/:repo/:workflow_id", (req, res, next) => {
+    router.get('/runs/:owner/:repo/:workflow_id', (req, res, next) => {
       this._actions.refreshWorkflow(
         req.params.owner,
         req.params.repo,
-        parseInt(req.params.workflow_id)
+        parseInt(req.params.workflow_id),
       );
       res.send();
     });

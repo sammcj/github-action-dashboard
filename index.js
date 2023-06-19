@@ -26,8 +26,7 @@ try {
 
     // Go
     server.listen(PORT, () => console.log(`Action Dashboard running on port ${PORT}`));
-}
-catch (e) {
+} catch (e) {
     console.error('Error on startup');
     console.error(e);
 }

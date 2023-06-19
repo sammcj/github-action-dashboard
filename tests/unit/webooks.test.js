@@ -1,31 +1,31 @@
-const WebHooks = require("../../webhooks");
+const WebHooks = require('../../webhooks');
 
-const axios = require("axios").default;
-const { Webhooks: OctoWebhooks } = require("@octokit/webhooks");
+const axios = require('axios').default;
+const { Webhooks: OctoWebhooks } = require('@octokit/webhooks');
 
-const mockData = require("./mock_data");
+const mockData = require('./mock_data');
 
-test("WebHooks - Init Disabled", () => {
-  const webHooks = new WebHooks(8080, null, 8081, "/", null, null, null);
+test('WebHooks - Init Disabled', () => {
+  const webHooks = new WebHooks(8080, null, 8081, '/', null, null, null);
 
   expect(webHooks._enabled).toBeFalsy();
 });
 
-test(`WebHooks - Init Default`, () => {
-  const webHooks = new WebHooks(8080, "XXXXX", 8081, "/", null, null, null);
+test('WebHooks - Init Default', () => {
+  const webHooks = new WebHooks(8080, 'XXXXX', 8081, '/', null, null, null);
 
   expect(webHooks._sitePort).toBe(8080);
   expect(webHooks._webhookPort).toBe(8081);
-  expect(webHooks._defaultPath).toBe("/");
-  expect(webHooks._path).toBe("/");
-  expect(webHooks._secret).toBe("XXXXX");
+  expect(webHooks._defaultPath).toBe('/');
+  expect(webHooks._path).toBe('/');
+  expect(webHooks._secret).toBe('XXXXX');
   expect(webHooks._enabled).toBeTruthy();
 });
 
-test(`WebHooks - Init Same Port`, () => {
+test('WebHooks - Init Same Port', () => {
   // Setup
-  jest.mock("express");
-  const Express = require("express");
+  jest.mock('express');
+  const Express = require('express');
   const use = jest.fn(() => {});
 
   Express.mockImplementation(() => {
@@ -38,19 +38,19 @@ test(`WebHooks - Init Same Port`, () => {
 
   const webHooks = new WebHooks(
     8080,
-    "XXXXX",
+    'XXXXX',
     8080,
-    "/webhook",
+    '/webhook',
     null,
     null,
-    express
+    express,
   );
 
   expect(webHooks._sitePort).toBe(8080);
   expect(webHooks._webhookPort).toBe(8080);
-  expect(webHooks._defaultPath).toBe("/webhook");
-  expect(webHooks._path).toBe("/webhook");
-  expect(webHooks._secret).toBe("XXXXX");
+  expect(webHooks._defaultPath).toBe('/webhook');
+  expect(webHooks._path).toBe('/webhook');
+  expect(webHooks._secret).toBe('XXXXX');
   expect(webHooks._enabled).toBeTruthy();
 
   webHooks.start();
@@ -58,24 +58,24 @@ test(`WebHooks - Init Same Port`, () => {
   webHooks.stop();
 });
 
-test(`WebHooks - Init Same Port bad path`, () => {
+test('WebHooks - Init Same Port bad path', () => {
   expect(() => {
-    const webHooks = new WebHooks(8080, "XXXX", 8080, "/", null, null, null);
+    const webHooks = new WebHooks(8080, 'XXXX', 8080, '/', null, null, null);
   }).toThrow();
 });
 
-describe(`WebHooks - HTTP Tests`, () => {
+describe('WebHooks - HTTP Tests', () => {
   let webHooks;
   let octoWebhooks;
   let workflowRun;
-  const secret = "XXXXXXX";
+  const secret = 'XXXXXXX';
   const webHookPort = 8081;
 
   beforeEach(() => {
     octoWebhooks = new OctoWebhooks({ secret: secret });
-    webHooks = new WebHooks(8080, secret, webHookPort, "/", null, null, null);
+    webHooks = new WebHooks(8080, secret, webHookPort, '/', null, null, null);
     workflowRun = jest
-      .spyOn(webHooks, "workflowRun")
+      .spyOn(webHooks, 'workflowRun')
       .mockImplementation(() => {});
     webHooks.start();
   });
@@ -85,12 +85,12 @@ describe(`WebHooks - HTTP Tests`, () => {
     jest.restoreAllMocks();
   });
 
-  test(`Ping`, async () => {
+  test('Ping', async () => {
     const response = await axios.get(`http://localhost:${webHookPort}/ping`);
     expect(response.status).toBe(200);
   });
 
-  test(`Workflow_Run Message`, async () => {
+  test('Workflow_Run Message', async () => {
     const sig = await octoWebhooks.sign(mockData.webHooks[0].payload);
 
     const response = await axios.post(
@@ -98,21 +98,21 @@ describe(`WebHooks - HTTP Tests`, () => {
       mockData.webHooks[0].payload,
       {
         headers: {
-          "X-GitHub-Event": mockData.webHooks[0].name,
-          "X-GitHub-Delivery": mockData.webHooks[0].id,
-          "X-Hub-Signature-256": sig,
-          "Content-Type": "application/json",
+          'X-GitHub-Event': mockData.webHooks[0].name,
+          'X-GitHub-Delivery': mockData.webHooks[0].id,
+          'X-Hub-Signature-256': sig,
+          'Content-Type': 'application/json',
         },
-      }
+      },
     );
     expect(response.status).toBe(200);
     expect(workflowRun.mock.calls.length).toBe(1);
   });
 });
 
-test(`WebHooks - workflowRun Completed No Usage`, async () => {
-  jest.mock("../../github");
-  const GitHub = require("../../github");
+test('WebHooks - workflowRun Completed No Usage', async () => {
+  jest.mock('../../github');
+  const GitHub = require('../../github');
   const getUsage = jest.fn(async () => {
     return null;
   });
@@ -123,8 +123,8 @@ test(`WebHooks - workflowRun Completed No Usage`, async () => {
     };
   });
 
-  jest.mock("../../actions");
-  const Actions = require("../../actions");
+  jest.mock('../../actions');
+  const Actions = require('../../actions');
   const mergeRuns = jest.fn(() => {});
 
   Actions.mockImplementation(() => {
@@ -137,12 +137,12 @@ test(`WebHooks - workflowRun Completed No Usage`, async () => {
   const actions = new Actions(gitHub);
   webHooks = new WebHooks(
     8080,
-    "XXXX",
+    'XXXX',
     8080,
-    "/webhook",
+    '/webhook',
     gitHub,
     actions,
-    null
+    null,
   );
 
   await webHooks.workflowRun(mockData.webHooks[0]);
@@ -151,10 +151,10 @@ test(`WebHooks - workflowRun Completed No Usage`, async () => {
   expect(mergeRuns.mock.calls.length).toBe(1);
 });
 
-test(`WebHooks - workflowRun Completed Usage`, async () => {
+test('WebHooks - workflowRun Completed Usage', async () => {
   const durationMs = 1234;
-  jest.mock("../../github");
-  const GitHub = require("../../github");
+  jest.mock('../../github');
+  const GitHub = require('../../github');
   const getUsage = jest.fn(async () => {
     return { run_duration_ms: durationMs };
   });
@@ -165,8 +165,8 @@ test(`WebHooks - workflowRun Completed Usage`, async () => {
     };
   });
 
-  jest.mock("../../actions");
-  const Actions = require("../../actions");
+  jest.mock('../../actions');
+  const Actions = require('../../actions');
   const mergeRuns = jest.fn(() => {});
 
   Actions.mockImplementation(() => {
@@ -179,12 +179,12 @@ test(`WebHooks - workflowRun Completed Usage`, async () => {
   const actions = new Actions(gitHub);
   webHooks = new WebHooks(
     8080,
-    "XXXX",
+    'XXXX',
     8080,
-    "/webhook",
+    '/webhook',
     gitHub,
     actions,
-    null
+    null,
   );
 
   await webHooks.workflowRun(mockData.webHooks[0]);
@@ -194,9 +194,9 @@ test(`WebHooks - workflowRun Completed Usage`, async () => {
   expect(mergeRuns.mock.calls[0][0][0].durationMs).toBe(durationMs);
 });
 
-test(`WebHooks - workflowRun Pending`, async () => {
-  jest.mock("../../github");
-  const GitHub = require("../../github");
+test('WebHooks - workflowRun Pending', async () => {
+  jest.mock('../../github');
+  const GitHub = require('../../github');
   const getUsage = jest.fn(async () => {
     return null;
   });
@@ -207,8 +207,8 @@ test(`WebHooks - workflowRun Pending`, async () => {
     };
   });
 
-  jest.mock("../../actions");
-  const Actions = require("../../actions");
+  jest.mock('../../actions');
+  const Actions = require('../../actions');
   const mergeRuns = jest.fn(() => {});
 
   Actions.mockImplementation(() => {
@@ -221,16 +221,16 @@ test(`WebHooks - workflowRun Pending`, async () => {
   const actions = new Actions(gitHub);
   webHooks = new WebHooks(
     8080,
-    "XXXX",
+    'XXXX',
     8080,
-    "/webhook",
+    '/webhook',
     gitHub,
     actions,
-    null
+    null,
   );
 
   const pending = { ...mockData.webHooks[0] };
-  pending.payload.workflow_run.status = "pending";
+  pending.payload.workflow_run.status = 'pending';
   await webHooks.workflowRun(pending);
 
   expect(getUsage.mock.calls.length).toBe(0);

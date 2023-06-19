@@ -1,8 +1,8 @@
-const { createAppAuth } = require("@octokit/auth-app");
-const { throttling } = require("@octokit/plugin-throttling");
-const { retry } = require("@octokit/plugin-retry");
-const { Octokit } = require("@octokit/rest");
-const debug = require("debug")("action-dashboard:github");
+const { createAppAuth } = require('@octokit/auth-app');
+const { throttling } = require('@octokit/plugin-throttling');
+const { retry } = require('@octokit/plugin-retry');
+const { Octokit } = require('@octokit/rest');
+const debug = require('debug')('action-dashboard:github');
 
 class GitHub {
   constructor(
@@ -12,7 +12,7 @@ class GitHub {
     _privateKey,
     _clientId,
     _clientSecret,
-    _installationId
+    _installationId,
   ) {
     this._org = _org;
     this._user = _user;
@@ -35,7 +35,7 @@ class GitHub {
       throttle: {
         onRateLimit: (retryAfter, options) => {
           console.error(
-            `Request quota exhausted for request ${options.method} ${options.url}`
+            `Request quota exhausted for request ${options.method} ${options.url}`,
           );
 
           if (options.request.retryCount === 0) {
@@ -46,7 +46,7 @@ class GitHub {
         },
         onAbuseLimit: (retryAfter, options) => {
           console.error(
-            `Abuse detected for request ${options.method} ${options.url}`
+            `Abuse detected for request ${options.method} ${options.url}`,
           );
         },
       },
@@ -58,7 +58,7 @@ class GitHub {
       : this._octokit.repos.listForUser;
     this._owner = this._org ? { org: this._org } : { username: this._user };
 
-    debug("Using owner:", this._owner);
+    debug('Using owner:', this._owner);
   }
 
   async listRepos() {
@@ -66,7 +66,7 @@ class GitHub {
       const repos = await this._octokit.paginate(this._listRepos, this._owner);
       return repos;
     } catch (e) {
-      console.error("Error getting repos", e);
+      console.error('Error getting repos', e);
       return [];
     }
   }
@@ -75,11 +75,11 @@ class GitHub {
     try {
       const workflows = await this._octokit.paginate(
         this._octokit.actions.listRepoWorkflows,
-        { repo: repoName, owner: repoOwner }
+        { repo: repoName, owner: repoOwner },
       );
       return workflows;
     } catch (e) {
-      console.error("Error getting workflows", e);
+      console.error('Error getting workflows', e);
       return [];
     }
   }
@@ -94,7 +94,7 @@ class GitHub {
       });
       return usage.data;
     } catch (e) {
-      console.error("Error getting usage", e);
+      console.error('Error getting usage', e);
       return null;
     }
   }
@@ -107,12 +107,12 @@ class GitHub {
           repo: repoName,
           owner: repoOwner,
           workflow_id: workflowId,
-        }
+        },
       );
 
       return runs;
     } catch (e) {
-      console.error("Error getting runs", e);
+      console.error('Error getting runs', e);
       return null;
     }
   }

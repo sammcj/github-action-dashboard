@@ -1,6 +1,6 @@
-const debug = require("debug")("action-dashboard:webhooks");
-const { Webhooks, createNodeMiddleware } = require("@octokit/webhooks");
-const http = require("http");
+const debug = require('debug')('action-dashboard:webhooks');
+const { Webhooks, createNodeMiddleware } = require('@octokit/webhooks');
+const http = require('http');
 
 class WebHooks {
   constructor(
@@ -10,7 +10,7 @@ class WebHooks {
     webhookPath,
     gitHub,
     actions,
-    expressApp
+    expressApp,
   ) {
     if (secret) {
       this._secret = secret;
@@ -19,17 +19,17 @@ class WebHooks {
       this._gitHub = gitHub;
       this._actions = actions;
       if (sitePort === webhookPort) {
-        this._defaultPath = "/webhook";
+        this._defaultPath = '/webhook';
       } else {
-        this._defaultPath = "/";
+        this._defaultPath = '/';
       }
       this._path = webhookPath || this._defaultPath;
 
       // Fail in the case that the ports for the main site and webhooks
       // are the same and the path is explicitly set to /
-      if (sitePort === webhookPort && this._path === "/") {
+      if (sitePort === webhookPort && this._path === '/') {
         throw new Error(
-          "Path cannot be / when the webhooks are running on the same port as the main site"
+          'Path cannot be / when the webhooks are running on the same port as the main site',
         );
       }
 
@@ -41,7 +41,7 @@ class WebHooks {
   start() {
     if (this._enabled) {
       debug(
-        `Setting up webhooks port: ${this._webhookPort}, path: ${this._path}`
+        `Setting up webhooks port: ${this._webhookPort}, path: ${this._path}`,
       );
       // OctoKit webhooks, not this module
       const webhooks = new Webhooks({
@@ -56,14 +56,14 @@ class WebHooks {
       });
 
       const middleware = createNodeMiddleware(webhooks, { path: this._path });
-      webhooks.on("workflow_run", this.workflowRun);
+      webhooks.on('workflow_run', this.workflowRun);
 
       if (this._sitePort !== this._webhookPort) {
         this._server = http
           .createServer((req, res) => {
             debug(`received request path: ${req.url}`);
-            if (req.url === "/ping") {
-              debug("ping");
+            if (req.url === '/ping') {
+              debug('ping');
               res.statusCode = 200;
               res.end();
             } else {
@@ -72,17 +72,17 @@ class WebHooks {
           })
           .listen({ port: this._webhookPort }, () => {
             console.log(
-              `Listening for webhooks on ${this._webhookPort} at ${this._path}`
+              `Listening for webhooks on ${this._webhookPort} at ${this._path}`,
             );
           });
       } else {
         this._expressApp.use(this._path, middleware);
         console.log(
-          `Listening for webhooks on ${this._webhookPort} at ${this._path}`
+          `Listening for webhooks on ${this._webhookPort} at ${this._path}`,
         );
       }
     } else {
-      debug("Webhooks disabled");
+      debug('Webhooks disabled');
     }
   }
 
@@ -98,13 +98,13 @@ class WebHooks {
       debug(`workflow_run received id: ${id}, name: ${name}`, payload);
       let usage = null;
 
-      if (payload.workflow_run.status === "completed") {
+      if (payload.workflow_run.status === 'completed') {
         debug(`getting usage for id: ${id}, name: ${name}`);
         usage = await this._gitHub.getUsage(
           payload.workflow_run.repository.owner.login,
           payload.workflow_run.repository.name,
           payload.workflow_run.workflow_id,
-          payload.workflow_run.id
+          payload.workflow_run.id,
         );
       }
 
@@ -122,7 +122,7 @@ class WebHooks {
           message: payload.workflow_run.head_commit.message,
           committer: payload.workflow_run.head_commit.committer.name,
           status:
-            payload.workflow_run.status === "completed"
+            payload.workflow_run.status === 'completed'
               ? payload.workflow_run.conclusion
               : payload.workflow_run.status,
           createdAt: payload.workflow_run.created_at,
@@ -135,7 +135,7 @@ class WebHooks {
       console.dir(e);
       console.error(
         `Error processing workflow_run received id: ${id}, name: ${name}`,
-        payload
+        payload,
       );
     }
   };

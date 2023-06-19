@@ -1,12 +1,14 @@
 require('dotenv').config()
-const { createAppAuth } = require("@octokit/auth-app");
-const { Octokit } = require("@octokit/rest");
+const { createAppAuth } = require('@octokit/auth-app');
+const { Octokit } = require('@octokit/rest');
 
 const _appId = process.env.GITHUB_APPID;
 // Handles newlines \n in private key
-const _privateKey = Buffer.from(process.env.GITHUB_APP_PRIVATEKEY || "", "base64").toString("utf-8");
+const _privateKey = Buffer.from(process.env.GITHUB_APP_PRIVATEKEY || '', 'base64').toString('utf-8');
 const _clientId = process.env.GITHUB_APP_CLIENTID;
 const _clientSecret = process.env.GITHUB_APP_CLIENTSECRET;
+
+console.log(`${_privateKey}`);
 
 const octokit = new Octokit({
     auth: {
@@ -15,7 +17,7 @@ const octokit = new Octokit({
         clientId: _clientId,
         clientSecret: _clientSecret,
     },
-    authStrategy: createAppAuth
+    authStrategy: createAppAuth,
 });
 
 octokit.apps.listInstallations()

@@ -1,26 +1,25 @@
-const bodyParser = require("body-parser");
-const debug = require("debug")("action-dashboard:configure");
-const express = require("express");
-const path = require("path");
-const Actions = require("./actions");
-const GitHub = require("./github");
-const Routes = require("./routes");
-const RunStatus = require("./runstatus");
-const WebHooks = require("./webhooks");
+const bodyParser = require('body-parser');
+const debug = require('debug')('action-dashboard:configure');
+const express = require('express');
+const path = require('path');
+const Actions = require('./actions');
+const GitHub = require('./github');
+const Routes = require('./routes');
+const RunStatus = require('./runstatus');
+const WebHooks = require('./webhooks');
 
 const baseDir = path.basename(process.cwd());
 // Handle when server is started from vue-cli vs root
-if (baseDir === "client") {
-  debug("started from vue-cli");
-  require("dotenv").config({ path: path.resolve(process.cwd(), "../.env") });
-}
-// Handle when server is started from
-else {
-  debug("started from index.js");
-  require("dotenv").config();
+if (baseDir === 'client') {
+  debug('started from vue-cli');
+  require('dotenv').config({ path: path.resolve(process.cwd(), '../.env') });
+} else {
+  // Handle when server is started from
+  debug('started from index.js');
+  require('dotenv').config();
 }
 
-debug("env", process.env);
+debug('env', process.env);
 
 const {
   PORT = 8080,
@@ -31,23 +30,23 @@ const {
   GITHUB_APP_INSTALLATIONID,
   GITHUB_APP_WEBHOOK_PORT = 8081,
   GITHUB_APP_WEBHOOK_SECRET,
-  GITHUB_APP_WEBHOOK_PATH = "/",
+  GITHUB_APP_WEBHOOK_PATH = '/',
   GITHUB_ORG,
   GITHUB_USERNAME,
 } = process.env;
 
 // Handles newlines \n in private key
 const GITHUB_APP_PRIVATEKEY = Buffer.from(
-  process.env.GITHUB_APP_PRIVATEKEY || "",
-  "base64"
-).toString("utf-8");
+  process.env.GITHUB_APP_PRIVATEKEY || '',
+  'base64',
+).toString('utf-8');
 
 // For sharing runStatus across before/after stages
 let _runStatus = null;
 
 module.exports = {
   before: (app) => {
-    debug("configure before");
+    debug('configure before');
 
     const gitHub = new GitHub(
       GITHUB_ORG,
@@ -56,20 +55,20 @@ module.exports = {
       GITHUB_APP_PRIVATEKEY,
       GITHUB_APP_CLIENTID,
       GITHUB_APP_CLIENTSECRET,
-      GITHUB_APP_INSTALLATIONID
+      GITHUB_APP_INSTALLATIONID,
     );
     _runStatus = new RunStatus();
     const actions = new Actions(gitHub, _runStatus, LOOKBACK_DAYS);
     const routes = new Routes(
       actions,
-      process.env.GITHUB_ORG || process.env.GITHUB_USERNAME
+      process.env.GITHUB_ORG || process.env.GITHUB_USERNAME,
     );
     const router = express.Router();
 
     routes.attach(router);
 
     app.use(bodyParser.json());
-    app.use("/api", router);
+    app.use('/api', router);
 
     const webhooks = new WebHooks(
       PORT,
@@ -78,7 +77,7 @@ module.exports = {
       GITHUB_APP_WEBHOOK_PATH,
       gitHub,
       actions,
-      app
+      app,
     );
 
     // Start everything
@@ -86,7 +85,7 @@ module.exports = {
     webhooks.start();
   },
   after: (app, server) => {
-    debug("configure after");
+    debug('configure after');
 
     // Attach socket.io to server
     _runStatus.start(server);

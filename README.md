@@ -1,4 +1,6 @@
-# GitHub Action Dashboard
+# GitHub Action Dashboard - No Longer Supported
+
+My team is no longer using this for monitoring our GitHub actions.  Feel free to fork and improve!
 
 This is a fork of [Chris Kinsman's GitHub Action Dashboard](https://github.com/ChrisKinsman/github-action-dashboard) with a number of updates and improvements. I may submit a pull request to the original repo at some point, but for now I'm just using this as a place to store my changes.
 
